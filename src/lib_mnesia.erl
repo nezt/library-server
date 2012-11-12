@@ -1,7 +1,8 @@
 %% ===================================================================
 %% Library APP
 %% Copyright (c) 2012 All Rights Reserved.
-%% Nestor Ocampo <anezt_oh@hotmail.com>
+%% Created by:   Jorge Garrido <jorge.garrido@morelosoft.com> 
+%% Modified by:  Nestor Ocampo <anezt_oh@hotmail.com>
 %% ===================================================================
 -module(lib_mnesia).
 -include("library_server.hrl").
