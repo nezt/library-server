@@ -3,7 +3,6 @@ library-server
 
 This is a basic application to practic Generic Server and  Mnesia together.
 
-Library server
 
 * Introduction
 
@@ -63,4 +62,3 @@ tu return a book:
 	
         > return_book(NameBook). 
 			
-
