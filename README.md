@@ -17,6 +17,7 @@ tracing and error reporting. It will also fit into an OTP supervision tree.
 more info: http://www.erlang.org/doc/man/gen_server.html
 
 * Mnesia
+
 Mnesia is a distributed DataBase Management System (DBMS), appropriate for 
 telecommunications applications and other Erlang applications which require 
 continuous operation and exhibit soft real-time properties.
