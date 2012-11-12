@@ -52,7 +52,7 @@ You can see the books list, according to their status:
                                                
 	> get_books_all().
 	> get_books_available().
-        > get_books_unable().
+	> get_books_unable().
 
 to rent a book:
 
