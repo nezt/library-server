@@ -21,7 +21,7 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {transactions,books}).
+-record(state, {transactions}).
 
 
 %%%===================================================================
@@ -79,7 +79,7 @@ start_link() ->
 init([]) ->
     ok = mnesia:start(),
     lib_mnesia:create_tables(),
-    {ok, #state{transactions=0,books=[]}}.
+    {ok, #state{transactions=0}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -95,9 +95,9 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({insert, Table, {_,NameBook}=Data}, _From, #state{transactions=Transactions,books=Books}) ->
+handle_call({insert, Table, Data}, _From, #state{transactions=Transactions}) ->
     R=lib_mnesia:put(Table,Data),
-    {reply, R, #state{transactions=Transactions+1,books=Books ++ [NameBook]}};
+    {reply, R, #state{transactions=Transactions+1}};
 
 
 handle_call({getall, Table}, _From, #state{transactions=Transactions}) ->
