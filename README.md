@@ -28,7 +28,7 @@ more info: http://www.erlang.org/doc/man/mnesia.html
 
 clone the project:
 
-  $ git clone https://github.com/nezt/hl72xml.git
+  $ git clone https://github.com/nezt/library-server.git
 
 Into library:
 
