@@ -2,6 +2,7 @@ library-server
 ==============
 
 * Introduction
+====
 
 Here's a basic application to practic Generic Server and  Mnesia together,
 this example is about a library, where  you can storage information about
@@ -25,6 +26,7 @@ continuous operation and exhibit soft real-time properties.
 more info: http://www.erlang.org/doc/man/mnesia.html
 
 * How to start
+====
 
 clone the project:
 
