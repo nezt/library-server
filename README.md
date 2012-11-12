@@ -1,7 +1,7 @@
-library-server
+Library-server
 ==============
 
-* Introduction
+Introduction
 ====
 
 Here's a basic application to practic Generic Server and  Mnesia together,
@@ -25,7 +25,7 @@ continuous operation and exhibit soft real-time properties.
 
 more info: http://www.erlang.org/doc/man/mnesia.html
 
-* How to start
+How to start
 ====
 
 clone the project:
