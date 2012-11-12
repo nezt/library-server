@@ -30,7 +30,7 @@ How to start
 
 clone the project:
 
-  	$ https://github.com/nezt/library-server.git
+  	$ hg clone https://github.com/nezt/library-server.git
 
 Into library:
 
