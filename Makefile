@@ -1,5 +1,3 @@
-DIALYZER=dialyzer
-
 .PHONY: start
 
 all: compile 
