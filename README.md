@@ -60,5 +60,5 @@ to rent a book:
 
 tu return a book:
 	
-        > return_book(NameBook). 
+	> return_book(NameBook). 
 			
