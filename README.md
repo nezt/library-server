@@ -28,11 +28,11 @@ more info: http://www.erlang.org/doc/man/mnesia.html
 
 clone the project:
 
-  $ git clone https://github.com/nezt/library-server.git
+  	$ https://github.com/nezt/library-server.git
 
 Into library:
 
-	$ cd library
+	$ cd library-server
 
 Let's compile and start the application:
 
