@@ -13,6 +13,6 @@ clean:
 	@echo "Terminated............ "
 
 start:
-	@erl -pa ebin/ -eval 'mnesia:create_schema(nodes()).' -eval 'ok = application:start(gen_app).'
+	@erl -pa ebin/ -eval 'mnesia:create_schema(nodes()), ok = application:start(gen_app).'
 
 
