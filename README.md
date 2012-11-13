@@ -50,15 +50,15 @@ First let's to create books in the library with a Key and name of the book:
 
 You can see the books list, according to their status:
                                                
-	> get_books_all().
-	> get_books_available().
-	> get_books_unable().
+	> library_server:get_books_all().
+	> library_server:get_books_available().
+	> library_server:get_books_unable().
 
 to rent a book:
 
-	> rent(Who, NameBook).
+	> library_server:rent(Who, NameBook).
 
-tu return a book:
+to return a book:
 	
 	> return_book(NameBook). 
 			
