@@ -43,7 +43,7 @@ Let's compile and start the application:
 Ready, now test the example:
 
 
-First let's to create books in the library with a Key and name of the book:
+First let's create books in the library with a Key and name of the book:
 
 	> library_server:insert_book(Id,NameBook).
   
