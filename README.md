@@ -52,7 +52,7 @@ You can see the books list, according to their status:
                                                
 	> library_server:get_books_all().
 	> library_server:get_books_available().
-	> library_server:get_books_unable().
+	> library_server:get_books_unavailable().
 
 to rent a book:
 
