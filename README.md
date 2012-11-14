@@ -58,7 +58,9 @@ to rent a book:
 
 	> library_server:rent(Who, NameBook).
 
+Note: Who is a name of a person.
+
 to return a book:
 	
-	> return_book(NameBook). 
+	> library_server:return_book(NameBook). 
 			
