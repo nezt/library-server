@@ -4,7 +4,7 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created :  6 Nov 2012 by Nestor <nest@nest-HP-530-Notebook-PC-GU339AA-ABM>
+%%% Created : 13 Nov 2012 by Nestor <nest@nest-HP-530-Notebook-PC-GU339AA-ABM>
 %%%-------------------------------------------------------------------
 -module(library_server).
 
@@ -12,7 +12,7 @@
 
 %% API
 -export([start/0,start_link/0,insert_book/2,get_books_all/0, get_all/1,rent/2,
-         get_books_available/0,get_books_unable/0,return_book/1]).
+         get_books_available/0,get_books_unavailable/0,return_book/1]).
 
 
 %% gen_server callbacks
@@ -21,7 +21,7 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {transactions}).
+-record(state, {transactions,books}).
 
 
 %%%===================================================================
@@ -29,27 +29,30 @@
 %%%===================================================================
 
 
-
+%% start server
 start() -> 
 			gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
+%% insert new book in database
 insert_book(Id,NameBook)->
 			gen_server:call(?MODULE, {insert,library,[{id,Id},{namebook,NameBook},{client,"null"},{status,"available"}]}).
-                                               
+%% Get all the books info
 get_all(Table)->
 			gen_server:call(?MODULE, {getall,Table}).
+%% Get all the books info in a list format
 get_books_all()->
 			gen_server:call(?MODULE, {get_books,library,all}).
+%% Get availables books in a list format
 get_books_available()->
 			gen_server:call(?MODULE, {get_books,library,"available"}).
-get_books_unable()->
-			gen_server:call(?MODULE, {get_books,library,"unable"}).
+%% Get unavailables books in a list format
+get_books_unavailable()->
+			gen_server:call(?MODULE, {get_books,library,"unavailable"}).
+%% rent a book 
 rent(Who, NameBook) -> 
 			gen_server:call(?MODULE, {rent, Who, NameBook}).
-
+%% return a book 
 return_book(NameBook) -> 
 			gen_server:call(?MODULE, {return,NameBook}).
-
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -104,18 +107,15 @@ handle_call({getall, Table}, _From, #state{transactions=Transactions}) ->
     R=lib_mnesia:get(Table,all, none,none),
     {reply, R, #state{transactions=Transactions+1}};
 
-%Type  all
 handle_call({get_books, Table, all}, _From, #state{transactions=Transactions}) ->
     ListBooks=lib_mnesia:get(Table,all, none,none),
     {reply, format_books(ListBooks), #state{transactions=Transactions+1}};
 
-%Type  available/unable
 handle_call({get_books, Table, Type}, _From, #state{transactions=Transactions}) ->
     ListBooks=lib_mnesia:get(Table,all, none,none),
      List= [Row || Row ={library,_,_,_,Status}<-ListBooks, Status =:= Type],
 
     {reply, format_books({Type,List}), #state{transactions=Transactions+1}};
-
 
 handle_call({rent, Who, NameBook}, _From, #state{transactions=Transactions}) ->
     Values = lib_mnesia:get(library,all, none,none),
@@ -123,9 +123,9 @@ handle_call({rent, Who, NameBook}, _From, #state{transactions=Transactions}) ->
 	       	  case Status of
 	       	  "available"    -> 
 	       	                    ok=lib_mnesia:update({replace, library, client, Who, id, Id}),
-	       	                    ok=lib_mnesia:update({replace, library, status, "unable", id, Id}),
+	       	                    ok=lib_mnesia:update({replace, library, status, "unavailable", id, Id}),
 	       	                    {ok,{Who,Book}};
-	       	  "unable"  -> {unable,Client}
+	       	  "unavailable"  -> {unavailable,Client}
                	  end
 	         end || {library,Id,Book,Client,Status}<-Values, Book =:= NameBook],
 
@@ -139,14 +139,13 @@ handle_call({return,NameBook}, _From, #state{transactions=Transactions}) ->
 	       	  case Status of
 	       	  "available"    -> {available,Book};
 	       	                    
-	       	  "unable"  -> ok=lib_mnesia:update({replace, library, client, null, id, Id}),
+	       	  "unavailable"  -> ok=lib_mnesia:update({replace, library, client, null, id, Id}),
 	       	                    ok=lib_mnesia:update({replace, library, status, "available", id, Id}),
 	       	                    {ok,{available,Book}}
                	  end
 	         end || {library,Id,Book,_,Status}<-Values, Book =:= NameBook],
        Res= case length(Oper) of 0->{error,book_notfound}; _->Oper end, 
     {reply, Res, #state{transactions=Transactions+1}}.
-
 
 %%--------------------------------------------------------------------
 %% @private
@@ -205,35 +204,17 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 format_books([])->
-io:format("~n\t\t\t ***** Library ***** ~n~n \t\t\t There are not books ~n",[]),
-ok;
-
-
+{not_found_books,[]};
 
 format_books({"available", ListBooks})->
-io:format("~n\t\t\t ***** Library ***** ~n~n 
-               \t\t id \t\t title \t\t status ~n~n",[]),
+{available_books, [ [{id,Id},{book,Libro},{status,Status}] || {library,Id,Libro,_,Status}<-ListBooks]};
 
-[io:format("\t\t ~p \t\t ~p \t ~p ~n",[Id,Libro,Status])
- || {library,Id,Libro,_,Status}<-ListBooks],
-ok;
-
-
-format_books({"unable", ListBooks})->
-io:format("~n\t\t\t ***** Library ***** ~n~n 
-               \t\t id \t\t title \t\t client \t\t status ~n~n",[]),
-[io:format("\t\t ~p \t\t ~p \t\t ~p \t ~p ~n",[Id,Libro,Client,Status])
- || {library,Id,Libro,Client,Status}<-ListBooks],
-ok;
-
-
+format_books({"unavailable", ListBooks})->
+{unavailable, [ [{id,Id},{book,Libro},{client,Client},{status,Status}] || {library,Id,Libro,Client,Status}<-ListBooks]};
 
 format_books(ListBooks)->
-io:format("~n\t\t\t ***** Library ***** ~n~n 
-               \t\t id \t\t title \t\t status ~n~n",[]),
-[io:format("\t\t ~p \t\t ~p \t ~p ~n",[Id,Libro,Status])
- || {library,Id,Libro,_,Status}<-ListBooks],
-ok.
+{books, [[{id,Id},{book,Libro},{status,Status}] || {library,Id,Libro,_,Status}<-ListBooks]}.
+
 
 
 
