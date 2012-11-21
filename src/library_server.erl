@@ -12,7 +12,7 @@
 
 %% API
 -export([start/0,start_link/0,insert_book/2,get_books_all/0, get_all/1,rent/2,
-         get_books_available/0,get_books_unavailable/0,return_book/1]).
+         get_books_available/0,get_books_unavailable/0,return_book/1,return_info/0]).
 
 
 %% gen_server callbacks
@@ -53,6 +53,11 @@ rent(Who, NameBook) ->
 %% return a book 
 return_book(NameBook) -> 
 			gen_server:call(?MODULE, {return,NameBook}).
+%% return a history rent books
+return_info() -> 
+			gen_server:call(?MODULE, {return_info}).
+
+
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -81,8 +86,8 @@ start_link() ->
 %%--------------------------------------------------------------------
 init([]) ->
     ok = mnesia:start(),
-    lib_mnesia:create_tables(),
-    {ok, #state{transactions=0}}.
+    library_server_mnesia:create_tables(),
+    {ok, #state{transactions=0,books=[undefined]}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -99,53 +104,57 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({insert, Table, Data}, _From, #state{transactions=Transactions}) ->
-    R=lib_mnesia:put(Table,Data),
+    R=library_server_mnesia:put(Table,Data),
     {reply, R, #state{transactions=Transactions+1}};
 
 
 handle_call({getall, Table}, _From, #state{transactions=Transactions}) ->
-    R=lib_mnesia:get(Table,all, none,none),
+    R=library_server_mnesia:get(Table,all, none,none),
     {reply, R, #state{transactions=Transactions+1}};
 
 handle_call({get_books, Table, all}, _From, #state{transactions=Transactions}) ->
-    ListBooks=lib_mnesia:get(Table,all, none,none),
+    ListBooks=library_server_mnesia:get(Table,all, none,none),
     {reply, format_books(ListBooks), #state{transactions=Transactions+1}};
 
 handle_call({get_books, Table, Type}, _From, #state{transactions=Transactions}) ->
-    ListBooks=lib_mnesia:get(Table,all, none,none),
+    ListBooks=library_server_mnesia:get(Table,all, none,none),
      List= [Row || Row ={library,_,_,_,Status}<-ListBooks, Status =:= Type],
 
     {reply, format_books({Type,List}), #state{transactions=Transactions+1}};
 
-handle_call({rent, Who, NameBook}, _From, #state{transactions=Transactions}) ->
-    Values = lib_mnesia:get(library,all, none,none),
+handle_call({rent, Who, NameBook}, _From, #state{transactions=Transactions,books=RCBook}) ->
+    Values = library_server_mnesia:get(library,all, none,none),
 	 Oper=[begin
 	       	  case Status of
 	       	  "available"    -> 
-	       	                    ok=lib_mnesia:update({replace, library, client, Who, id, Id}),
-	       	                    ok=lib_mnesia:update({replace, library, status, "unavailable", id, Id}),
+	       	                    ok=library_server_mnesia:update({replace, library, client, Who, id, Id}),
+	       	                    ok=library_server_mnesia:update({replace, library, status, "unavailable", id, Id}),
 	       	                    {ok,{Who,Book}};
 	       	  "unavailable"  -> {unavailable,Client}
                	  end
 	         end || {library,Id,Book,Client,Status}<-Values, Book =:= NameBook],
 
        Res= case length(Oper) of 0->{error,book_notfound}; _->Oper end, 
-    {reply, Res, #state{transactions=Transactions+1}};
 
+    {reply, Res, #state{transactions=Transactions+1,books=[NameBook|RCBook]}};
 
 handle_call({return,NameBook}, _From, #state{transactions=Transactions}) ->
-    Values = lib_mnesia:get(library,all, none,none),
+    Values = library_server_mnesia:get(library,all, none,none),
 	 Oper=[begin
 	       	  case Status of
 	       	  "available"    -> {available,Book};
 	       	                    
-	       	  "unavailable"  -> ok=lib_mnesia:update({replace, library, client, null, id, Id}),
-	       	                    ok=lib_mnesia:update({replace, library, status, "available", id, Id}),
+	       	  "unavailable"  -> ok=library_server_mnesia:update({replace, library, client, null, id, Id}),
+	       	                    ok=library_server_mnesia:update({replace, library, status, "available", id, Id}),
 	       	                    {ok,{available,Book}}
                	  end
 	         end || {library,Id,Book,_,Status}<-Values, Book =:= NameBook],
        Res= case length(Oper) of 0->{error,book_notfound}; _->Oper end, 
-    {reply, Res, #state{transactions=Transactions+1}}.
+    {reply, Res, #state{transactions=Transactions+1}};
+
+handle_call({return_info}, _From, #state{transactions=Transactions,books=RCBook}) ->
+    Res=  [{transactions,Transactions},{rent_books,RCBook}],
+    {reply, Res , #state{transactions=Transactions,books=RCBook}}.
 
 %%--------------------------------------------------------------------
 %% @private

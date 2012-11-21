@@ -3,7 +3,7 @@
 %% Copyright (c) 2012 All Rights Reserved.
 %% Nestor Ocampo <anezt_oh@hotmail.com>
 %% ===================================================================
--module(util).
+-module(library_server_util).
 -export([get_concat/2,is_proplist/1,get_values/2, add_kv_pairs/2,key_member/2,
          replace_kv_pairs/2]).
 
@@ -39,11 +39,10 @@ add_kv_pairs(NewProplist, OldProplist) ->
 %% key is member on a proplist
 %% @spec key_member(Key::term(),Proplist::list()) -> ok | nok.
 key_member(Key, Proplist) ->
-    Keys = proplists:get_keys(Proplist),
-    case lists:member(Key, Keys) of
-	true  -> ok;
-	false -> nok
-    end.
+case [ok || {K,_}<-Proplist, Key =:= K] of
+	[]-> nok;
+	_-> ok
+end.
 
 %% Replace values in a proplist
 %% @spec replace_kv_pairs(List::list(), Replacemements::term()) -> term().
@@ -56,7 +55,6 @@ replace_kv_pairs([{Key, Value} | Rest], Replacements) ->
 	    NewReplacements = proplists:delete(Key,Replacements),
 	    [{Key, NewValue}|replace_kv_pairs(Rest,NewReplacements)]
     end.
-
 
 %% don't know what type is, then evaluate all known types :)
 %% @spec get_concat(OldValue::term(),NewValur::term()) -> term().

@@ -4,7 +4,7 @@
 %% Created by:   Jorge Garrido <jorge.garrido@morelosoft.com> 
 %% Modified by:  Nestor Ocampo <anezt_oh@hotmail.com>
 %% ===================================================================
--module(lib_mnesia).
+-module(library_server_mnesia).
 -include("library_server.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
@@ -19,9 +19,9 @@ create_tables() ->
 %% Write a record in mnesia
 %% @spec put(Table::list() | atom(), Keys::[{atom(),list()}]) -> term().
 put(Table, Keys) when is_list(Table) ->
-    lib_mnesia:put(list_to_atom(Table),Keys);
+    library_server_mnesia:put(list_to_atom(Table),Keys);
 put(Table, Keys)                     ->
-    case util:is_proplist(Keys) of
+    case library_server_util:is_proplist(Keys) of
 	true  -> 
 	    Set = list_to_tuple(
 		    [Table|[proplists:get_value(X, Keys) ||
@@ -36,7 +36,7 @@ put(Table, Keys)                     ->
 %% Select a value in mnesia
 %% @spec get(Table::list() | atom(), Field::atom(), MatchField::atom(), MatchValue::list() ) -> term().
 get(Table, Field, MatchField, MatchValue) when is_list(Table) ->
-    lib_mnesia:get(list_to_atom(Table), Field, MatchField, MatchValue);
+    library_server_mnesia:get(list_to_atom(Table), Field, MatchField, MatchValue);
 
 get(Table, all, none, none)               ->
     Trnsc = fun() ->
@@ -91,7 +91,7 @@ update({append, Table, Field, NewValue, MatchField, MatchValue})                
 				    element(get_field({Table, MatchField}), X) =:= MatchValue]),
 		    [Occ|_]=qlc:e(Q),
 		    OldValue = element(get_field({Table, Field}), Occ),
-		    Value=util:get_concat(NewValue, OldValue),
+		    Value=library_server_util:get_concat(NewValue, OldValue),
 		    UpdValue = setelement(get_field({Table, Field}), Occ, Value),
 		    mnesia:write(UpdValue)
 	    end,
